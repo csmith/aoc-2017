@@ -8,5 +8,5 @@ with open('data/01.txt', 'r') as file:
 import numpy as np
 with open('data/01.txt', 'r') as file:
     captcha = list(file.readline().strip())
-    print('Part one: %s' % sum(int(i) for i, j in zip(captcha, np.roll(captcha, 1).tolist()) if i == j))
-    print('Part two: %s' % sum(int(i) for i, j in zip(captcha, np.roll(captcha, len(captcha)//2).tolist()) if i == j))
+for part, roll in enumerate([1, len(captcha)//2]):
+    print('Part %s: %s' % (part + 1, sum(int(i) for i, j in zip(captcha, np.roll(captcha, roll)) if i == j)))
