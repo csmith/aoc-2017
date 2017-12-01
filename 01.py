@@ -7,6 +7,6 @@ with open('data/01.txt', 'r') as file:
 # Alternatively...
 import numpy as np
 with open('data/01.txt', 'r') as file:
-    captcha = file.readline().strip()
-    print('Part one: %s' % sum(int(i) for i, j in zip(captcha, np.roll(list(captcha), 1).tolist()) if i == j))
-    print('Part two: %s' % sum(int(i) for i, j in zip(captcha, np.roll(list(captcha), len(captcha)//2).tolist()) if i == j))
+    captcha = list(file.readline().strip())
+    print('Part one: %s' % sum(int(i) for i, j in zip(captcha, np.roll(captcha, 1).tolist()) if i == j))
+    print('Part two: %s' % sum(int(i) for i, j in zip(captcha, np.roll(captcha, len(captcha)//2).tolist()) if i == j))
