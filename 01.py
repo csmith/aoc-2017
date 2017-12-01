@@ -3,3 +3,10 @@ with open('data/01.txt', 'r') as file:
     length = len(captcha) // 2
     print('Part one: %s' % sum(int(captcha[i]) for i in range(length) if captcha[i] == captcha[i+1]))
     print('Part two: %s' % sum(int(captcha[i]) for i in range(length) if captcha[i] == captcha[i + length // 2]))
+
+# Alternatively...
+import numpy as np
+with open('data/01.txt', 'r') as file:
+    captcha = file.readline().strip()
+    print('Part one: %s' % sum(int(i) for i, j in zip(captcha, np.roll(list(captcha), 1).tolist()) if i == j))
+    print('Part two: %s' % sum(int(i) for i, j in zip(captcha, np.roll(list(captcha), len(captcha)//2).tolist()) if i == j))
