@@ -4,13 +4,8 @@ programs = {}
 
 with open('data/07.txt', 'r') as file:
     for line in file.readlines():
-        if '->' in line:
-            details, children = line.strip().split(' -> ')
-            children = children.split(', ')
-        else:
-            details = line.strip()
-            children = []
-
+        details = line.strip().split(' -> ')[0]
+        children = line.strip().split(' -> ')[1].split(', ') if '->' in line else []
         name, weight = details.split(' ')
         weight = int(weight.strip('()'))
         programs[name] = SimpleNamespace(name=name, weight=weight, total_weight=-1, child_names=children, children=[])
@@ -25,8 +20,6 @@ for program in list(programs.values()):
         roots.remove(child)
     if len(program.children) == 0:
         leaves.append(program)
-
-print(f'Part one: {programs[roots[0]].name}')
 
 
 def resolve_weight(program):
@@ -43,4 +36,5 @@ def check_weight(program):
 
 
 resolve_weight(programs[roots[0]])
+print(f'Part one: {programs[roots[0]].name}')
 print(f'Part two: {check_weight(programs[roots[0]])}')
