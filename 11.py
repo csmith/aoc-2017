@@ -17,16 +17,12 @@ reductions = [
 
 def distance(steps):
     counts = collections.defaultdict(lambda: 0, collections.Counter(steps))
-    last_counts = dict()
-    while counts != last_counts:
-        last_counts = dict(counts)
-        for a, b, result in reductions:
-            count = min(counts[a], counts[b])
-            counts[a] -= count
-            counts[b] -= count
-            counts[result] += count
-    counts['--'] = 0
-    return sum(counts.values())
+    for a, b, result in reductions * 2:
+        count = min(counts[a], counts[b])
+        counts[a] -= count
+        counts[b] -= count
+        counts[result] += count
+    return sum(counts.values()) - counts['--']
 
 
 with open('data/11.txt', 'r') as file:
