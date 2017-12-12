@@ -1,22 +1,13 @@
+import functools
+
 with open('data/12.txt', 'r') as file:
+    sets = []
     pipes = list(map(lambda l: l.strip().replace(' <-> ', ', ').split(', '), file.readlines()))
-    groups = [set('0')]
-    while len(pipes):
-        for gi, group in enumerate(groups):
-            last_size = 0
-            while len(group) != last_size:
-                last_size = len(group)
-                remove = []
-                for pipeset in pipes:
-                    if any(program in group for program in pipeset):
-                        group = group.union(pipeset)
-                        groups[gi] = group
-                        remove.append(pipeset)
-                for pipeset in remove:
-                    pipes.remove(pipeset)
-        if len(pipes):
-            pipeset = pipes[0]
-            groups.append(set(pipeset))
-            pipes.remove(pipeset)
-    print(f'Part one: {len(groups[0])}')
-    print(f'Part two: {len(groups)}')
+    for pipe in pipes:
+        overlapping = [s for s in sets if any(program in s for program in pipe)]
+        for overlap in overlapping:
+            sets.remove(overlap)
+        sets.append(functools.reduce(set.union, overlapping, set(pipe)))
+
+    print(f'Part one: {len(next(s for s in sets if "0" in s))}')
+    print(f'Part two: {len(sets)}')
