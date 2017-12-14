@@ -9,5 +9,5 @@ with open('data/14.txt', 'r') as file:
     for y, row in enumerate(grid):
         for x, cell in enumerate(row):
             if cell == '1':
-                add_connected_components(regions, [(x-1, y), (x, y-1), (x+1, y), (x, y+1)], {(x, y)})
+                add_connected_components(regions, [(x-1, y), (x, y-1)], {(x, y)})
     print(f'Part two: {len(regions)}')
