@@ -1,5 +1,3 @@
-import functools
-
 from shared import knot_hash, add_connected_components
 
 with open('data/14.txt', 'r') as file:
