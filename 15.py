@@ -1,4 +1,4 @@
-import itertools
+from itertools import starmap, islice
 import operator
 
 
@@ -12,5 +12,5 @@ def gen(seed, factor, multiple=1):
 
 with open('data/15.txt', 'r') as file:
     seeds = [int(line.strip().split()[-1]) for line in file.readlines()]
-    print(f'Part one: {sum(map(lambda t: t[0] == t[1], itertools.islice(zip(gen(seeds[0], 16807), gen(seeds[1], 48271)), 40000000)))}')
-    print(f'Part two: {sum(map(lambda t: t[0] == t[1], itertools.islice(zip(gen(seeds[0], 16807, 4), gen(seeds[1], 48271, 8)), 5000000)))}')
+    print(f'Part one: {sum(starmap(operator.eq, islice(zip(gen(seeds[0], 16807), gen(seeds[1], 48271)), 40000000)))}')
+    print(f'Part two: {sum(starmap(operator.eq, islice(zip(gen(seeds[0], 16807, 4), gen(seeds[1], 48271, 8)), 5000000)))}')
