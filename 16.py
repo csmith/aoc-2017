@@ -1,5 +1,5 @@
 import string
-from functools import partial
+from functools import partial, reduce
 
 
 def spin(amount, line):
@@ -23,8 +23,7 @@ def dance(reps, moves):
     # then all of the remainder will just cycle between those two lines.
     history = []
     for i in range(reps):
-        for move in moves:
-            line = move(line)
+        line = reduce(lambda v, m: m(v), moves, line)
         if line in history:
             start = history.index(line)
             cycle = len(history) - start
