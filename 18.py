@@ -1,35 +1,33 @@
+import operator
 from collections import defaultdict
 
-get_value = lambda registers, operand: registers[operand] if operand in registers else int(operand)
+
+def get_value(registers, operand):
+    return registers[operand] if operand in registers else int(operand)
+
+
+def handle_generic(op):
+    def inner(pc, registers, _, args):
+        registers[args[0]] = op(registers[args[0]], get_value(registers, args[1]))
+        return pc + 1
+    return inner
+
 
 def handle_snd(pc, registers, state, args):
     state['snd'].append(get_value(registers, args[0]))
     state['sndc'] += 1
     return pc + 1
 
-def handle_set(pc, registers, state, args):
-    registers[args[0]] = get_value(registers, args[1])
-    return pc + 1
 
-def handle_add(pc, registers, state, args):
-    registers[args[0]] += get_value(registers, args[1])
-    return pc + 1
-
-def handle_mul(pc, registers, state, args):
-    registers[args[0]] *= get_value(registers, args[1])
-    return pc + 1
-
-def handle_mod(pc, registers, state, args):
-    registers[args[0]] %= get_value(registers, args[1])
-    return pc + 1
-
-def handle_jgz(pc, registers, state, args):
+def handle_jgz(pc, registers, _, args):
     return pc + get_value(registers, args[1]) if get_value(registers, args[0]) > 0 else pc + 1
+
 
 def handle_rcv_p1(pc, registers, state, args):
     if get_value(registers, args[0]) != 0:
-        state['recovered'].append(state['snd'][-1])
+        state['rcv'].append(state['snd'][-1])
     return pc + 1
+
 
 def handle_rcv_p2(pc, registers, state, args):
     if len(state['rcv']) > 0:
@@ -38,73 +36,62 @@ def handle_rcv_p2(pc, registers, state, args):
     else:
         return pc
 
-def process_p1(instructions):
-    pc, state, registers = 0, {'snd': [], 'sndc': 0, 'recovered': []}, defaultdict(lambda: 0)
-    ops = {
+
+def get_ops(part_one=True):
+    return {
         'snd': handle_snd,
-        'set': handle_set,
-        'add': handle_add,
-        'mul': handle_mul,
-        'mod': handle_mod,
+        'set': handle_generic(lambda _, v: v),
+        'add': handle_generic(operator.add),
+        'mul': handle_generic(operator.mul),
+        'mod': handle_generic(operator.mod),
         'jgz': handle_jgz,
-        'rcv': handle_rcv_p1,
+        'rcv': handle_rcv_p1 if part_one else handle_rcv_p2
     }
-    while len(state['recovered']) == 0:
-        ins = instructions[pc]
-        pc = ops[ins[0]](pc, registers, state, ins[1:])
-    return state['recovered'][0]
+
+
+def new_program(snd, rcv):
+    return {'pc': 0, 'snd': snd, 'sndc': 0, 'rcv': rcv, 'terminated': False, 'waiting': False, 'regs': defaultdict(lambda: 0)}
+
+
+def process_p1(instructions):
+    program = new_program([], [])
+    ops = get_ops(True)
+    while len(program['rcv']) == 0:
+        ins = instructions[program['pc']]
+        program['pc'] = ops[ins[0]](program['pc'], program['regs'], program, ins[1:])
+    return program['rcv'][0]
 
 
 def can_execute(programs):
-    for p in programs:
-        if p['state']['terminated']:
-            yield False
-        elif p['state']['waiting'] and len(p['state']['rcv']) == 0:
-            yield False
-        else:
-            yield True
+    return any(not p['terminated'] and (not p['waiting'] or len(p['rcv']) > 0) for p in programs)
 
 
 def process_p2(instructions):
     p1_to_p2, p2_to_p1 = [], []
-    programs = [{
-        'pc': 0,
-        'state': {'snd': p1_to_p2, 'sndc': 0, 'rcv': p2_to_p1, 'terminated': False, 'waiting': False},
-        'regs': defaultdict(lambda: 0)
-    }, {
-        'pc': 0,
-        'state': {'snd': p2_to_p1, 'sndc': 0, 'rcv': p1_to_p2, 'terminated': False, 'waiting': False},
-        'regs': defaultdict(lambda: 0),
-    }]
+    programs = [new_program(p1_to_p2, p2_to_p1), new_program(p2_to_p1, p1_to_p2)]
     programs[1]['regs']['p'] = 1
 
-    ops = {
-        'snd': handle_snd,
-        'set': handle_set,
-        'add': handle_add,
-        'mul': handle_mul,
-        'mod': handle_mod,
-        'jgz': handle_jgz,
-        'rcv': handle_rcv_p2,
-    }
-
+    ops = get_ops(False)
     p = 0
-    while any(can_execute(programs)):
+    while can_execute(programs):
         for _ in range(1000):
             pc = programs[p]['pc']
-            programs[p]['state']['waiting'] = False
+            programs[p]['waiting'] = False
+
             if pc < 0 or pc >= len(instructions):
-                programs[p]['state']['terminated'] = True
+                programs[p]['terminated'] = True
                 break
+
             ins = instructions[pc]
-            programs[p]['pc'] = ops[ins[0]](pc, programs[p]['regs'], programs[p]['state'], ins[1:])
+            programs[p]['pc'] = ops[ins[0]](pc, programs[p]['regs'], programs[p], ins[1:])
+
             if programs[p]['pc'] == pc:
-                programs[p]['state']['waiting'] = True
+                programs[p]['waiting'] = True
                 break
+
         p = 1 - p
 
-    return programs[1]['state']['sndc']
-
+    return programs[1]['sndc']
 
 
 with open('data/18.txt', 'r') as file:
