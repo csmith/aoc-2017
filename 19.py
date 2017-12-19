@@ -1,35 +1,36 @@
 import operator
 
 
-def junction_routes(maze, pos):
-    dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    for dir in dirs:
-        new_pos = tuple(map(operator.add, pos, dir))
+def junction_route(maze, pos, ignore_heading):
+    headings = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    headings.remove(ignore_heading)
+    for heading in headings:
+        new_pos = tuple(map(operator.add, pos, heading))
         try:
-            cell = maze[new_pos[1]][new_pos[0]]
+            cell = maze[new_pos]
             if cell.isalpha() or cell in ['|', '-', '+']:
-                yield dir
-        except:
-            # Out of bounds
+                return heading
+        except (IndexError, KeyError):  # Out of bounds
             pass
 
 
-with open('data/19.txt', 'r') as file:
-    maze = file.readlines()
-    p, d, h, cell = (maze[0].index('|'), 0), (0, 1), [], '|'
+with open('data/19.txt') as file:
+    lines = file.readlines()
+    pos, heading, letters, cell = (lines[0].index('|'), 0), (0, 1), '', '|'
+    maze = dict(((x, y), v) for y, line in enumerate(lines) for x, v in enumerate(line))
 
     # Steps doesn't include the starting step, but does include an extra step at the end
     # where we step into whitespace, so balances out.
     steps = 0
 
     while cell != ' ':
-        p = tuple(map(operator.add, p, d))
-        cell = maze[p[1]][p[0]]
+        pos = tuple(map(operator.add, pos, heading))
+        cell = maze[pos]
         steps += 1
         if cell == '+':
-            d = next(o for o in junction_routes(maze, p) if o != (-d[0], -d[1]))
+            heading = junction_route(maze, pos, (-heading[0], -heading[1]))
         elif cell.isalpha():
-            h.append(cell)
+            letters += cell
 
-    print(f'Part one: {"".join(h)}')
+    print(f'Part one: {letters}')
     print(f'Part two: {steps}')
