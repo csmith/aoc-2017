@@ -1,9 +1,8 @@
 import operator
 
 
-def junction_route(maze, pos, ignore_heading):
-    headings = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    headings.remove(ignore_heading)
+def junction_route(maze, pos, original_heading):
+    headings = [(-1, 0), (1, 0)] if original_heading[0] == 0 else [(0, -1), (0, 1)]
     for heading in headings:
         new_pos = tuple(map(operator.add, pos, heading))
         try:
@@ -28,7 +27,7 @@ with open('data/19.txt') as file:
         cell = maze[pos]
         steps += 1
         if cell == '+':
-            heading = junction_route(maze, pos, (-heading[0], -heading[1]))
+            heading = junction_route(maze, pos, heading)
         elif cell.isalpha():
             letters += cell
 
